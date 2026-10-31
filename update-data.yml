@@ -1,0 +1,33 @@
+name: Update bullion data
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fetch IBJA API
+        run: |
+          mkdir -p data
+          B=https://ibja-api.vercel.app
+          for pair in latest:latest silver:silver/latest platinum:platinum/latest history:history; do
+            name=${pair%%:*}; path=${pair#*:}
+            if curl -fsS --retry 3 --max-time 60 "$B/$path" -o "data/$name.tmp" && python3 -c "import json,sys;json.load(open('data/$name.tmp'))"; then
+              mv "data/$name.tmp" "data/$name.json"
+            else
+              rm -f "data/$name.tmp"; echo "skipped $name"
+            fi
+          done
+      - name: Commit changes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data
+          git diff --staged --quiet || (git commit -m "Update data" && git push)

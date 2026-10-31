@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BullionDesk · Live IBJA Gold, Silver &amp; Platinum Rates</title>
+<meta name="description" content="Live IBJA gold, silver and platinum rates in India with historical charts and a value calculator.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🪙</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+:root{--bg:#0b0f14;--card:#121821;--line:#1e2733;--tx:#e6edf3;--mu:#8b98a8;--gold:#f5c451;--teal:#2dd4bf;--coral:#ff6b5e;--r:16px}
+:root[data-theme=light]{--bg:#f6f4ee;--card:#fff;--line:#e4e0d4;--tx:#18202a;--mu:#6b7686;--gold:#b8860b;--teal:#0d9488;--coral:#e0443a}
+*{box-sizing:border-box;margin:0}
+body{background:var(--bg);color:var(--tx);font:15px/1.5 'Space Grotesk',system-ui,sans-serif;padding:env(safe-area-inset-top) 0 40px;
+background-image:radial-gradient(900px 400px at 80% -10%,color-mix(in srgb,var(--gold) 14%,transparent),transparent)}
+.mono,.num{font-family:'IBM Plex Mono',monospace}
+.wrap{max-width:1120px;margin:auto;padding:0 18px}
+header{display:flex;justify-content:space-between;align-items:center;padding:22px 0;gap:12px;flex-wrap:wrap}
+.logo{font-weight:700;font-size:20px;letter-spacing:-.02em}.logo b{color:var(--gold)}
+.tools{display:flex;gap:8px;align-items:center}
+.pill{font:500 12px 'IBM Plex Mono',monospace;color:var(--mu);border:1px solid var(--line);border-radius:99px;padding:6px 12px;background:var(--card)}
+.dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--teal);margin-right:6px;box-shadow:0 0 8px var(--teal)}
+.dot.off{background:var(--coral);box-shadow:0 0 8px var(--coral)}
+button{font:inherit;color:inherit;cursor:pointer}
+.btn{background:var(--card);border:1px solid var(--line);border-radius:99px;padding:6px 13px;font-size:13px}
+.btn:hover{border-color:var(--gold)}.btn.on{background:var(--gold);color:#111;border-color:var(--gold);font-weight:500}
+h1{font-size:clamp(28px,5vw,46px);letter-spacing:-.03em;line-height:1.1;margin:14px 0 8px}
+h1 span{color:var(--gold)}
+.sub{color:var(--mu);max-width:560px}
+.grid{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));margin:28px 0}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px}
+.card h3{font-size:13px;color:var(--mu);font-weight:500;display:flex;justify-content:space-between}
+.big{font:500 28px 'IBM Plex Mono',monospace;margin:8px 0 2px;letter-spacing:-.02em}
+.unit{font-size:12px;color:var(--mu)}
+.row{display:flex;justify-content:space-between;font-size:13px;color:var(--mu);margin-top:6px}
+.up{color:var(--teal)}.down{color:var(--coral)}
+.sk{height:28px;border-radius:8px;background:linear-gradient(90deg,var(--line),transparent,var(--line));background-size:200%;animation:s 1.2s infinite}
+@keyframes s{to{background-position:-200%}}
+section{margin:34px 0}
+section>h2{font-size:20px;margin-bottom:14px;letter-spacing:-.01em}
+.ctl{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;justify-content:space-between}
+.grp{display:flex;gap:6px;flex-wrap:wrap}
+.chart{position:relative;height:340px}
+.two{display:grid;gap:14px;grid-template-columns:repeat(auto-fit,minmax(300px,1fr))}
+label{font-size:13px;color:var(--mu);display:block;margin:10px 0 4px}
+input,select{width:100%;background:var(--bg);color:var(--tx);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:500 15px 'IBM Plex Mono',monospace}
+.res{font:500 30px 'IBM Plex Mono',monospace;color:var(--gold);margin-top:14px}
+.scroll{overflow-x:auto}table{width:100%;border-collapse:collapse;font:13px 'IBM Plex Mono',monospace}
+th,td{padding:9px 10px;text-align:right;border-bottom:1px solid var(--line);white-space:nowrap}
+th:first-child,td:first-child{text-align:left}th{color:var(--mu);font-weight:500}
+.err{border:1px solid var(--coral);color:var(--coral);border-radius:var(--r);padding:12px 16px;margin-top:18px;display:none}
+footer{color:var(--mu);font-size:12px;margin-top:40px;border-top:1px solid var(--line);padding-top:18px}
+a{color:var(--teal)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div class="logo">Bullion<b>Desk</b></div>
+  <div class="tools">
+    <span class="pill"><i class="dot off" id="dot"></i><span id="stamp">connecting…</span></span>
+    <button class="btn" id="theme" aria-label="Toggle theme">◐</button>
+    <button class="btn" id="refresh">↻ Refresh</button>
+  </div>
+</header>
+
+<h1>India's benchmark <span>bullion rates</span>, live.</h1>
+<p class="sub">Official IBJA AM/PM rates for gold, silver and platinum, with daily change, history charts and a value calculator.</p>
+<div class="err" id="err">Couldn't reach the rates API. Showing last saved data if available. <button class="btn" onclick="load()">Retry</button></div>
+
+<div class="grid" id="cards"></div>
+
+<section>
+  <h2>Price history</h2>
+  <div class="card">
+    <div class="ctl">
+      <div class="grp" id="metal"></div>
+      <div class="grp" id="range"></div>
+    </div>
+    <div class="chart"><canvas id="cv"></canvas></div>
+  </div>
+</section>
+
+<section class="two">
+  <div class="card">
+    <h3>Value calculator</h3>
+    <label>Metal / purity</label><select id="cm"></select>
+    <label>Weight (grams)</label><input id="cw" type="number" min="0" value="10" inputmode="decimal">
+    <label>Session</label><select id="cs"><option>AM</option><option>PM</option></select>
+    <div class="res" id="cr">—</div><div class="unit">Based on IBJA rate, excluding making charges &amp; GST</div>
+  </div>
+  <div class="card">
+    <h3>Gold purity guide</h3>
+    <table><tr><th>Code</th><th>Karat</th><th>Pure gold</th></tr>
+    <tr><td>999</td><td>24K</td><td>99.9%</td></tr><tr><td>995</td><td>24K</td><td>99.5%</td></tr>
+    <tr><td>916</td><td>22K</td><td>91.6%</td></tr><tr><td>750</td><td>18K</td><td>75.0%</td></tr><tr><td>585</td><td>14K</td><td>58.5%</td></tr></table>
+  </div>
+</section>
+
+<section>
+  <h2>Recent sessions</h2>
+  <div class="card scroll"><table id="tbl"></table></div>
+</section>
+
+<footer>Data from <a href="https://ibja-api.vercel.app" target="_blank" rel="noopener">IBJA Gold API</a> (unofficial, sourced from ibjarates.com). Gold is quoted per 10 g, silver per kg, platinum per g. For information only — verify with your jeweller before transacting.</footer>
+</div>
+
+<script>
+const API='https://ibja-api.vercel.app',$=id=>document.getElementById(id);
+const inr=n=>n==null||isNaN(n)?'—':'₹'+Number(n).toLocaleString('en-IN',{maximumFractionDigits:2});
+const GOLD=[['999','24K · 999'],['995','24K · 995'],['916','22K · 916'],['750','18K · 750'],['585','14K · 585']];
+const METALS=[...GOLD.map(([k,l])=>({id:'gold_'+k,name:'Gold '+l,unit:'/10 g',lat:'lblGold'+k})),{id:'silver_999',name:'Silver 999',unit:'/kg',lat:'lblSilver999'}];
+let D={},hist=null,chart,sel='gold_999',days=30;
+
+const LOCAL={'/latest':'latest','/silver/latest':'silver','/platinum/latest':'platinum','/history':'history'};
+const get=async p=>{
+  try{const r=await fetch('data/'+LOCAL[p]+'.json?v='+Math.floor(Date.now()/6e5));if(!r.ok)throw 0;return await r.json()}
+  catch(e){const r=await fetch(API+p);if(!r.ok)throw new Error(r.status);return r.json()}
+};
+const pd=s=>{const[a,b,c]=s.split('/');return new Date(+c,b-1,+a)};
+
+async function load(){
+  $('refresh').disabled=true;
+  const [g,s,p,h]=await Promise.allSettled([get('/latest'),get('/silver/latest'),get('/platinum/latest'),get('/history')]);
+  D={g:g.value,s:s.value,p:p.value};hist=h.value||null;
+  const ok=g.status==='fulfilled';
+  if(ok)try{localStorage.setItem('bd',JSON.stringify({D,hist,t:Date.now()}))}catch(e){}
+  else try{const c=JSON.parse(localStorage.getItem('bd'));if(c){D=c.D;hist=c.hist}}catch(e){}
+  $('err').style.display=ok?'none':'block';
+  $('dot').className='dot'+(ok?'':' off');
+  $('stamp').textContent=ok?'IBJA · '+(D.g?.date||'live'):'offline';
+  render();$('refresh').disabled=false;
+}
+
+function series(session){ // sorted ascending
+  if(!hist)return[];
+  return (hist[session.toLowerCase()]||[]).map(r=>({d:pd(r.date),ds:r.date,r})).filter(x=>!isNaN(x.d)).sort((a,b)=>a.d-b.d);
+}
+function delta(id){
+  const s=series('AM').filter(x=>+x.r[id]>0);if(s.length<2)return null;
+  const a=+s.at(-1).r[id],b=+s.at(-2).r[id];return{c:a-b,p:(a-b)/b*100};
+}
+function render(){
+  const cards=[];
+  for(const m of METALS){
+    const src=m.id.startsWith('gold')?D.g:D.s;if(!src){continue}
+    const am=src[m.lat+'_AM'],pm=src[m.lat+'_PM'],dl=delta(m.id);
+    cards.push(card(m.name,m.unit,am,pm,dl));
+  }
+  if(D.p)cards.push(card('Platinum 999','/g',D.p.lblPlatinum999_AM,D.p.lblPlatinum999_PM,null));
+  $('cards').innerHTML=cards.join('')||Array(4).fill('<div class="card"><div class="sk"></div></div>').join('');
+  buildCalc();draw();table();
+}
+function card(n,u,am,pm,dl){
+  const main=pm&&+pm>0?pm:am;
+  return `<div class="card"><h3>${n}<span class="unit">${u}</span></h3>
+  <div class="big">${inr(main)}</div>
+  ${dl?`<div class="${dl.c>=0?'up':'down'} mono" style="font-size:13px">${dl.c>=0?'▲':'▼'} ${inr(Math.abs(dl.c))} (${dl.p.toFixed(2)}%)</div>`:'<div class="unit">Latest session</div>'}
+  <div class="row"><span>AM</span><span class="mono">${inr(am)}</span></div><div class="row"><span>PM</span><span class="mono">${inr(pm)}</span></div></div>`;
+}
+
+function draw(){
+  $('metal').innerHTML=METALS.map(m=>`<button class="btn ${m.id===sel?'on':''}" data-m="${m.id}">${m.name.replace('Gold ','')}</button>`).join('');
+  $('range').innerHTML=[[7,'7D'],[30,'30D'],[90,'90D'],[0,'All']].map(([d,l])=>`<button class="btn ${d===days?'on':''}" data-r="${d}">${l}</button>`).join('');
+  const cut=days?Date.now()-days*864e5:0,am=series('AM').filter(x=>x.d>=cut&&+x.r[sel]>0),pm=series('PM').filter(x=>x.d>=cut&&+x.r[sel]>0);
+  const css=getComputedStyle(document.documentElement),gold=css.getPropertyValue('--gold').trim(),teal=css.getPropertyValue('--teal').trim(),mu=css.getPropertyValue('--mu').trim(),ln=css.getPropertyValue('--line').trim();
+  const labels=am.map(x=>x.ds);
+  const ds=[{label:'AM',data:am.map(x=>+x.r[sel]),borderColor:gold,backgroundColor:gold+'22',fill:true},
+            {label:'PM',data:pm.map(x=>+x.r[sel]),borderColor:teal,fill:false}].map(d=>({...d,tension:.3,pointRadius:0,pointHoverRadius:5,borderWidth:2}));
+  const cfg={type:'line',data:{labels:(pm.length>am.length?pm:am).map(x=>x.ds),datasets:ds},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
+    plugins:{legend:{labels:{color:mu,boxWidth:10}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+inr(c.parsed.y)}}},
+    scales:{x:{ticks:{color:mu,maxTicksLimit:8},grid:{display:false}},y:{ticks:{color:mu,callback:v=>'₹'+v.toLocaleString('en-IN')},grid:{color:ln}}}}};
+  if(chart)chart.destroy();if(window.Chart&&hist)chart=new Chart($('cv'),cfg);
+}
+function table(){
+  const a=series('AM').reverse().slice(0,10),pmMap=Object.fromEntries(series('PM').map(x=>[x.ds,x.r]));
+  $('tbl').innerHTML='<tr><th>Date</th><th>24K AM</th><th>24K PM</th><th>22K AM</th><th>22K PM</th><th>Silver AM</th></tr>'+
+  a.map(x=>{const p=pmMap[x.ds]||{};return `<tr><td>${x.ds}</td><td>${inr(x.r.gold_999)}</td><td>${inr(p.gold_999)}</td><td>${inr(x.r.gold_916)}</td><td>${inr(p.gold_916)}</td><td>${inr(x.r.silver_999)}</td></tr>`}).join('');
+}
+function buildCalc(){
+  if(!D.g)return;const cur=$('cm').value;
+  $('cm').innerHTML=METALS.map(m=>`<option value="${m.id}">${m.name}</option>`).join('');if(cur)$('cm').value=cur;calc();
+}
+function calc(){
+  const m=METALS.find(x=>x.id===$('cm').value);if(!m||!D.g)return;
+  const src=m.id.startsWith('gold')?D.g:D.s,rate=+src[m.lat+'_'+$('cs').value],w=+$('cw').value||0;
+  const per=m.id.startsWith('gold')?10:1000;
+  $('cr').textContent=rate?inr(rate/per*w):'—';
+}
+
+document.addEventListener('click',e=>{const t=e.target;
+  if(t.dataset.m){sel=t.dataset.m;draw()}if(t.dataset.r){days=+t.dataset.r;draw()}});
+['cm','cw','cs'].forEach(i=>$(i).addEventListener('input',calc));
+$('refresh').onclick=load;
+$('theme').onclick=()=>{const r=document.documentElement,l=r.dataset.theme==='light';l?r.removeAttribute('data-theme'):r.dataset.theme='light';try{localStorage.setItem('bdt',l?'dark':'light')}catch(e){}draw()};
+try{if(localStorage.getItem('bdt')==='light')document.documentElement.dataset.theme='light'}catch(e){}
+$('cards').innerHTML=Array(4).fill('<div class="card"><div class="sk"></div></div>').join('');
+load();setInterval(load,10*60*1000);
+</script>
+</body>
+</html>
