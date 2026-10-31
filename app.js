@@ -1,4 +1,12 @@
+// Static-site API configuration: no server or build step is required.
 const API = "https://ibja-api.vercel.app";
+const API_ENDPOINTS = {
+  goldLatest: "/latest",
+  silverLatest: "/silver/latest",
+  goldHistory: "/history",
+  silverHistory: "/silver",
+  platinumLatest: "/platinum/latest"
+};
 const state = { gold: [], silver: [], platinum: [], range: "30", rates: {gold:null,silver:null,platinum:null}, raw: {} };
 const $ = id => document.getElementById(id);
 const money = n => Number.isFinite(Number(n)) ? "₹" + Number(n).toLocaleString("en-IN",{maximumFractionDigits:2}) : "—";
@@ -8,7 +16,13 @@ function findValue(obj, keys){ if(!obj||typeof obj!=="object")return null; const
 function findDate(obj){if(!obj||typeof obj!=="object")return null;for(const [k,v] of Object.entries(obj)){if(/date|time|timestamp|day/i.test(k)&&typeof v==="string"){const d=dateVal(v);if(d)return d;} }for(const v of Object.values(obj)){if(v&&typeof v==="object"){const d=findDate(v);if(d)return d;}}return null;}
 function rowsFrom(payload, metal){let arr=Array.isArray(payload)?payload:null;if(!arr&&payload&&typeof payload==="object"){for(const k of ["data","history","records","rates","results","items"]){if(Array.isArray(payload[k])){arr=payload[k];break;}}} if(!arr)return [];const keys=metal==="gold"?["rate999","gold999","gold24k","gold","price","rate","ibja999","purity999"]:["silver999","silver","price","rate","silverrate","ibja999","rate999"];return arr.map((r,i)=>{const value=findValue(r,keys);const date=findDate(r)||new Date(Date.now()-(arr.length-i)*86400000);return {date,value,raw:r};}).filter(x=>x.value!==null).sort((a,b)=>a.date-b.date);}
 function extractLatest(payload, metal){const keys=metal==="gold"?["gold999","gold24k","rate999","gold","price","rate","ibja999","purity999"]:metal==="silver"?["silver999","silver","price","rate","ibja999","rate999"]:["platinum999","platinum","price","rate"];return findValue(payload,keys);}
-async function get(path){const r=await fetch(API+path,{headers:{Accept:"application/json"}});if(!r.ok)throw new Error(`${path}: HTTP ${r.status}`);return r.json();}
+async function get(path){
+  let r;
+  try { r=await fetch(API+path,{headers:{Accept:"application/json"}}); }
+  catch(err){ throw new Error(`Network/CORS error for ${path}. The API must allow browser requests from this GitHub Pages origin.`); }
+  if(!r.ok)throw new Error(`${path}: HTTP ${r.status}`);
+  return r.json();
+}
 function formatDate(d,opts={day:"2-digit",month:"short",year:"numeric"}){return d?new Intl.DateTimeFormat("en-IN",opts).format(d):"—";}
 function setChange(id,value,previous){const el=$(id);if(value==null||previous==null||!previous){el.textContent="—";el.className="change neutral";return;}const diff=value-previous,pct=diff/previous*100;el.textContent=`${diff>=0?"▲":"▼"} ${Math.abs(pct).toFixed(2)}%`;el.className="change "+(diff>=0?"positive":"negative");}
 function showToast(msg){const t=$("toast");t.textContent=msg;t.classList.add("show");setTimeout(()=>t.classList.remove("show"),2600);}
